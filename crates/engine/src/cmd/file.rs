@@ -558,6 +558,7 @@ fn load_with(
             if loaded.doc.name.is_empty() || loaded.doc.name == "Untitled" {
                 loaded.doc.name = file_stem(name_hint);
             }
+            validate_document_fonts(&loaded.doc, &mut loaded.issues);
             Ok((loaded, false))
         }
     }
@@ -570,6 +571,18 @@ pub(crate) fn load_fig(bytes: &[u8], name: &str) -> Option<Result<figcraft_forma
         link_instances(&mut doc);
         figcraft_format::Loaded { issues: warnings, ..doc.into() }
     }))
+}
+
+/// Font data from documents is registered at runtime only; never written into system
+/// font folders. SHA-256 ids avoid re-registering the same file on each reopen. A
+/// document keeps the bytes so the font survives save/reopen on a different computer.
+fn validate_document_fonts(doc: &Document, warnings: &mut Vec<String>) {
+    // Never add portable fonts to the process-global font database: a separate open
+    // document can contain different bytes with exactly the same family/style.
+    let families = figcraft_text::document_font_families(doc);
+    if families.is_empty() && !doc.embedded_fonts.is_empty() {
+        warnings.push("Embedded font data is not readable; original family names were preserved".into());
+    }
 }
 
 /// Link imported instances to their mains (layer sources, overrides found by comparing values),
@@ -1338,11 +1351,17 @@ fn import(s: &mut Session, p: &Value) -> Result<Value> {
                 None => &figcraft_format::rest::no_images,
             };
             let sibling = if variables.is_none() { path.as_deref().and_then(sibling_variables) } else { None };
-            let (other, rest) = load_with(&bytes, &name, variables.as_ref().or(sibling.as_ref()), images)?;
+            let (mut other, rest) = load_with(&bytes, &name, variables.as_ref().or(sibling.as_ref()), images)?;
             let summary = import_summary(&other.doc);
-            let pages = append_pages(s.doc_mut()?, &other.doc)?;
+            let pages = append_pages(s.doc_mut()?, &other.doc, &mut other.issues)?;
+            if !other.issues.is_empty() {
+                s.message = Some(match other.issues.as_slice() {
+                    [one] => format!("{}: {one}", file_stem(&name)),
+                    more => format!("{}: {} import warnings; first: {}", file_stem(&name), more.len(), more[0]),
+                });
+            }
             let mut out = json!({"pages": pages, "summary": summary});
-            if rest {
+            if rest || !other.issues.is_empty() {
                 out["warnings"] = json!(other.issues);
             }
             Ok(out)
@@ -1358,9 +1377,14 @@ fn import(s: &mut Session, p: &Value) -> Result<Value> {
 /// `doc`. Ids are remapped across all pages at once, so instances keep their main, instance layers
 /// their source and interactions and flows their targets wherever those are. Styles, variables and
 /// collections whose id the document already has are kept as they are.
-fn append_pages(doc: &mut Document, other: &Document) -> Result<Vec<NodeId>> {
+fn append_pages(doc: &mut Document, other: &Document, warnings: &mut Vec<String>) -> Result<Vec<NodeId>> {
     for (k, v) in &other.images {
         doc.images.entry(k.clone()).or_insert_with(|| v.clone());
+    }
+    // Never push the target over the font limits: otherwise a later save could fail.
+    let (_, skipped) = figcraft_format::merge_embedded_fonts(doc, other);
+    if skipped > 0 {
+        warnings.push(format!("{skipped} embedded fonts were skipped (invalid or over the size/count limit)"));
     }
     for st in &other.styles {
         if !doc.styles.iter().any(|s| s.id == st.id) {
@@ -1554,7 +1578,7 @@ mod rest_import_tests {
         for i in 0..8 {
             doc.create(page, NodeKind::Rectangle, &format!("Filler {i}"), 0.0, 0.0, 5.0, 5.0).unwrap();
         }
-        append_pages(&mut doc, &other).unwrap();
+        append_pages(&mut doc, &other, &mut Vec::new()).unwrap();
         assert!(doc.validate().is_empty(), "{:?}", doc.validate());
         assert!(crate::components::mirror_issues(&doc).is_empty(), "{:?}", crate::components::mirror_issues(&doc));
         let inst = doc.nodes().find(|n| n.name == "Cached instance").unwrap();

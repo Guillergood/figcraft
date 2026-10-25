@@ -972,6 +972,8 @@ impl Session {
         let before = self.ds().ok().map(|d| (d.doc.clone(), d.selection.clone(), d.page, d.uid));
         // Cut and copy write the clipboard before a later check can refuse the command.
         let clipboard_before = self.clipboard.clone();
+        // The command and its normalisation must measure text using only its own fonts.
+        let _fonts = before.as_ref().map(|(doc, _, _, _)| figcraft_text::enter_document_fonts(doc));
         let result = guard::run(id, || (spec.run)(self, params))
             .and_then(|v| self.check_instance_structure(id, &before).map(|()| v))
             .and_then(|v| self.check_preview(id, &before).map(|()| v))
@@ -1375,6 +1377,7 @@ pub fn changed_nodes(doc: &Document, before: &Document) -> Vec<NodeId> {
 /// Keep derived state consistent after edits: text boxes resize to their content, groups wrap
 /// their children, instances follow their main components, auto layout re-flows.
 pub fn normalize(doc: &mut Document, before: &Document) {
+    let _fonts = figcraft_text::enter_document_fonts(doc);
     // Only what was touched since the last normalisation (edited, added or removed).
     let mut touched: BTreeSet<NodeId> = doc.take_dirty();
     // A variable or style edit changes no layer directly, but bound and linked layers must follow it.

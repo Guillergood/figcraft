@@ -1,6 +1,6 @@
 # File format parity
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-24 · **Change:** minor (the Fonts table's missing-font row describes the Missing fonts window; `.figcraft` carries the file kind (boards); `.fig` import: resized instances and variable modes by asset key; atomic saves; auto-save; SVG export clip of nested frames; SVG/PDF export depth refusal (#208); `.fig` export: instance sizes, variables with modes, shared styles, variable-width strokes; `.fig` export: written files checked by opening them in other software; experimental `.fig` export; export and inspect behaviour suite and fixes; .fig import: editable vector networks and more layer kinds; embedded image colour profiles; `.fig` import, best effort; animated GIF fills and TIFF images; last major: created, formats from the installed Figma's Info.plist and help center, ours from source; REST import keeps slot layers and instances' slot content (#792); REST import reads grid track sizes (#465); `.fig` import fidelity from the community batches, budgets for large files, the import report, a `.fig` copy from Save as, paste from another design app; instance layers' size and resizing and Hug on import (#731, #732)) · **Target:** Figma Design (desktop app 126.10.7)
+> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-25 · **Change:** minor (document-owned fonts and snapshot ownership extracted from #1143) · **Target:** Figma Design (desktop app 126.10.7)
 
 Every format Figma reads or writes, with FigCraft's support. Sources: `Info.plist` of
 `/Applications/Figma.app` (document types only; nothing inside the bundle's code was read), Figma's
@@ -161,10 +161,19 @@ each.
 | Variable fonts | yes | yes (axes, named instances, per-range axis values) |
 | Missing-font replacement on open | yes | listed, not replaced: in the desktop app the Missing fonts window opens after a file that uses them opens and from Text ▸ Missing fonts (`text.missingFonts`; `figcraft-cli info` prints `missing font` lines), and their text draws in a fallback font |
 
+Native `.figcraft` archives can carry document-owned OpenType/TrueType font binaries
+under SHA-256 names. Fonts and redistribution notices stay with the document;
+version and branch indexes retain their own font ownership. Selection and layout
+caches are scoped to the current document, so another tab cannot replace its faces.
+Loading and merging allow at most 128 fonts, 32 MiB per font and 128 MiB total.
+Saves prioritize active-document fonts; omitted indexed fonts are reported on
+reopen. These model facilities do not download fonts or install them system-wide.
+
 ## Revision history
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-25 | minor | M6: extracted bounded native font storage, snapshot ownership, document-scoped face selection and cache isolation from #1143. Native archive and font-scope regressions remain with the model. No network retrieval or Penpot importer is included. Numbers unchanged. |
 | 2026-10-24 | patch | Fonts: the missing-font row said "warnings only (REST import)"; it now names the Missing fonts window (#752), `text.missingFonts` and the `missing font` lines of `figcraft-cli info`. Replacing a missing font is still missing. Numbers unchanged |
 | 2026-10-24 | minor | Slices and contents only (Figma's Ignore overlapping layers): with it on, a slice inside a frame or group exports only that frame or group and the layers in it, and its Export preview shows the same; with it off, or for a slice on the page or in a section, the slice exports everything in its area as before |
 | 2026-10-24 | minor | Boards (M12): `.figcraft` saves the file kind (`kind: "board"`, absent for design files) and each board object's `board` metadata; the `.jam` row points at boards |

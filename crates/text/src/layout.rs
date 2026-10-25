@@ -344,7 +344,11 @@ pub fn layout(text: &TextData, box_width: Option<f64>, box_height: Option<f64>) 
     let mut faces: Vec<Option<Arc<Face>>> = Vec::with_capacity(styles.len());
     let mut style_fallbacks: Vec<Vec<Arc<Face>>> = Vec::with_capacity(styles.len());
     for s in &styles {
-        faces.push(dbw.find(&s.font_family, &s.font_style).or_else(|| dbw.default_face()));
+        faces.push(
+            crate::fontdb::scoped_document_face(&s.font_family, &s.font_style)
+                .or_else(|| dbw.find(&s.font_family, &s.font_style))
+                .or_else(|| dbw.default_face()),
+        );
         style_fallbacks.push(dbw.fallbacks_for(&s.font_style));
     }
     // Colour emoji are their own, large faces (Apple Color Emoji is ~180 MB): they are read only
