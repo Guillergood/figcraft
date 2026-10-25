@@ -8,6 +8,7 @@ name = "Español"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Alternar superposición"
 "Align self" = "Alineación propia"
 "Item margins" = "Márgenes del elemento"
 "Reverse direction" = "Invertir la dirección"

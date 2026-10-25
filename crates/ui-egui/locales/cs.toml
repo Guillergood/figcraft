@@ -5,6 +5,7 @@ name = "Čeština"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Přepnout překryv"
 "% of all commits" = "% všech commitů"
 "(no longer published)" = "(již nepublikováno)"
 "({n} warnings: some entries were skipped)" = { one = "({n} varování: některé položky byly přeskočeny)", few = "({n} varování: některé položky byly přeskočeny)", other = "({n} varování: některé položky byly přeskočeny)" }

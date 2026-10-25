@@ -8,6 +8,7 @@
 name = "English"
 
 [ui]
+"Toggle overlay" = "Toggle overlay"
 "Align self" = "Align self"
 "Item margins" = "Item margins"
 "Reverse direction" = "Reverse direction"

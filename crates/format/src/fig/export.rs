@@ -574,7 +574,9 @@ impl<'d> Exporter<'d> {
                 _ => {}
             }
             for a in n.interactions.iter().flat_map(|it| figcraft_doc::proto::walk(&it.actions)) {
-                if let Action::OpenOverlay { dest, position, close_on_outside, background, .. } = a {
+                if let Action::OpenOverlay { dest, position, close_on_outside, background, .. }
+                | Action::ToggleOverlay { dest, position, close_on_outside, background, .. } = a
+                {
                     let o = Overlay { position: *position, close_on_outside: *close_on_outside, background: *background };
                     match self.overlays.get(dest) {
                         Some(old) if (old.position, old.close_on_outside, old.background) != (o.position, o.close_on_outside, o.background) => {
@@ -2235,6 +2237,15 @@ impl<'d> Exporter<'d> {
                 Some(act)
             }
             Action::OpenOverlay { dest, position, offset, .. } => {
+                let mut act = node(self, dest, "OVERLAY")?;
+                if let (Kv::Object(f), OverlayPosition::Manual, Some([x, y])) = (&mut act, position, offset) {
+                    f.push(("overlayRelativePosition", o(vec![("x", fl(*x)), ("y", fl(*y))])));
+                }
+                Some(act)
+            }
+            Action::ToggleOverlay { dest, position, offset, .. } => {
+                // `.fig` has no toggle: the overlay opens, and closing it is a separate action.
+                self.warn("toggle-overlay prototype actions were written as plain overlays");
                 let mut act = node(self, dest, "OVERLAY")?;
                 if let (Kv::Object(f), OverlayPosition::Manual, Some([x, y])) = (&mut act, position, offset) {
                     f.push(("overlayRelativePosition", o(vec![("x", fl(*x)), ("y", fl(*y))])));

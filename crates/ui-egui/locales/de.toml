@@ -9,6 +9,7 @@ name = "Deutsch"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Overlay umschalten"
 "% of all commits" = "% aller Commits"
 "(no longer published)" = "(nicht mehr veröffentlicht)"
 "({n} warnings: some entries were skipped)" = { one = "({n} Warnung: einige Einträge wurden übersprungen)", other = "({n} Warnungen: einige Einträge wurden übersprungen)" }

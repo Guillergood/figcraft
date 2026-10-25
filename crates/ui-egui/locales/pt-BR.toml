@@ -8,6 +8,7 @@ name = "Português (Brasil)"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Alternar sobreposição"
 "% of all commits" = "% de todos os commits"
 "(no longer published)" = "(não publicado mais)"
 "({n} warnings: some entries were skipped)" = { one = "({n} aviso: algumas entradas foram ignoradas)", other = "({n} avisos: algumas entradas foram ignoradas)" }

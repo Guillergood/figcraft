@@ -1,6 +1,6 @@
 # Prototyping parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-24 · **Change:** patch (the Triggers row no longer lists delays on mouse triggers as missing; top-level frames bigger than the device's screen scroll in the player; Change to, set variable and set variable mode lay out what they change in the player, as the canvas does; presentation tabs, one per page of a file; a Present tab with device and scale controls (#537); core editor leftovers: delays on mouse triggers and manual overlay offsets; controller buttons on key/gamepad triggers, widgets that react in prototypes, `proto.evaluate` and the mode lookup rules pinned) · **Target:** Figma Design (desktop app 126.10.7)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-25 · **Change:** minor (toggle-overlay model and editor/player support extracted from #1143) · **Target:** Figma Design (desktop app 126.10.7)
 
 **Breadth ~92%, ready ~74% (estimated).** Every Figma trigger except media, every action except
 media control, every transition and easing exist; key/gamepad triggers take controller buttons,
@@ -16,7 +16,7 @@ larger real prototypes. Remaining: 2–5 h.
 | Group | Figma | FigCraft | Missing |
 |---|---|---|---|
 | Triggers | On click, on drag, while hovering, while pressing, key/gamepad, mouse enter, mouse leave, mouse down, mouse up, after delay, on media hit, on media end | 10: OnClick, OnHover, OnPress, OnDrag, MouseEnter, MouseLeave, MouseDown, MouseUp, AfterDelay, KeyPress (keys, combinations and controller buttons) | media triggers; controllers on macOS, Linux and FreeBSD |
-| Actions | Navigate to, change to, back, scroll to, open link, open / swap / close overlay, set variable, set variable mode, conditional, play/pause/mute/seek media | 11: Navigate, Back, ScrollTo (with an offset), OpenOverlay, SwapOverlay, CloseOverlay, OpenUrl, ChangeTo, SetVariable, SetVariableMode, Conditional | media actions |
+| Actions | Navigate to, change to, back, scroll to, open link, open / swap / close overlay, set variable, set variable mode, conditional, play/pause/mute/seek media | 12: Navigate, Back, ScrollTo (with an offset), OpenOverlay, SwapOverlay, ToggleOverlay, CloseOverlay, OpenUrl, ChangeTo, SetVariable, SetVariableMode, Conditional | media actions |
 | Transitions | Instant, dissolve, smart animate, move in/out, push, slide in/out | all 8 | — |
 | Easing | Linear, ease in/out/in-and-out, back variants, gentle, quick, bouncy, slow, custom bezier, custom spring | all 13 (springs physical) | — |
 
@@ -50,6 +50,7 @@ case pins the current behaviour).
 | Scroll to with an offset: the layer stops that far from the top-left (room for a fixed header) | **added** | `offset: [x, y]` on the action, X / Y fields in the interaction editor; `scroll_to_brings_the_layer_to_the_top_less_its_offset` (nested scrolling frames: the innermost keeps the offset; silent) |
 | Open overlay: positions, background dimming, close on a click outside (on by default, can be turned off) | pass | `a_click_outside_an_overlay_closes_it_unless_turned_off`, `overlay_positions` |
 | Overlays stack; swap overlay replaces the top one; close overlay closes it | pass | `overlays_stack_swap_close_and_go_with_navigation` |
+| Toggle overlay: the same action opens the overlay when it is closed and closes it when it is open | **added** | `Action::ToggleOverlay` with the overlay's position, close-on-outside, background and offset, like an open overlay; the action panel offers it; the closing overlay animates out with its opening transition reversed; `a_toggle_overlay_opens_and_closes_the_same_overlay` |
 | Manual overlay position relative to the hotspot | **added** | `offset: [x, y]` on the action, from the top-left of the layer that opens it (X / Y fields in the interaction editor; without one, below that layer); `present_delay_tests` |
 | Delay on mouse enter / leave / down / up | **added** | `delayMs` on the interaction, a Delay field in the editor; fires once after the delay while its screen or overlay still shows (a pointer that leaves early: silent, it still fires); `mouse_triggers_wait_out_their_delay` |
 | Open link | pass | always a new tab or browser window (opening in place would leave the prototype) |
@@ -83,6 +84,7 @@ case pins the current behaviour).
 | Expressions (`count + 1`, `mode(Theme) == "Dark"`, `accent[Dark]`) | done | checked when entered; `proto.evaluate` computes one where a layer's interaction would run (MCP and agents) |
 | Flows, starting points, descriptions | done | |
 | Overlays: position, close on click outside, background, animate out, stacking, timers from when they open | done | |
+| Toggle overlay: the same action opens and closes the overlay | done | |
 | Scroll behaviour: overflow directions, fixed (drawn on top), sticky, preserve scroll position, scroll to with an offset, momentum and overscroll | done | |
 | Key combinations (`Shift+K`), recorded in the editor and imported from REST files | done | |
 | Controller buttons on key/gamepad triggers (Controller menu, REST import, `ui.input {gamepad}` on the control channel) | done | read from controllers on Windows (Windows.Gaming.Input) and in the browser (Gamepad API); macOS, Linux and FreeBSD don't read controllers yet; button names follow one layout (no PlayStation or Switch labels) |
@@ -104,6 +106,7 @@ case pins the current behaviour).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-25 | minor | M5: extracted ToggleOverlay, destination remapping, colour conversion, editor controls and duplicate-safe animated closing from #1143, independently of Penpot import. Existing file formats remain readable; .fig export warns when approximating a toggle as an open overlay. Numbers unchanged. |
 | 2026-10-24 | patch | The Triggers row's Missing column no longer lists delays on mouse enter, leave, down and up, which landed on 2026-10-13 (`crates/engine/src/proto_delay_tests.rs`, `crates/ui-egui/src/present_delay_tests.rs`). Numbers unchanged |
 | 2026-10-24 | patch | Open link to a website first shows a notice that it leaves the prototype, with the link, Open link, Cancel and "Don't show this again", which the desktop app saves with its preferences and the web build keeps until the page reloads (`proto.linkNotice` turns the notice back on); a second link to a website that fires while the notice shows is dropped, and a mail link still opens. Before, the player opened the link at once, also from an After delay trigger. Numbers unchanged |
 | 2026-10-23 | patch | A top-level frame taller (or wider) than the device's screen scrolls with no overflow setting, as Figma's documentation says; before, "No scrolling" frames such as the landing page template's Phone frame only clipped. Content past a frame's own edges still scrolls only as its overflow allows. Checked in the app on macOS. Numbers unchanged |

@@ -2,7 +2,7 @@
 
 **Stage: alpha** · next: beta, ~26 points and ~162–292 h away (one Opus 5.5 agent; ~33–67 h wall-clock with 5 agents)
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-25 · **Change:** minor (layout model extracted from #1143 for independent review) · **Target:** Figma Design (desktop app 126.10.7)
+> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-25 · **Change:** minor (shared model extraction from #1143: layout and toggle overlays) · **Target:** Figma Design (desktop app 126.10.7)
 
 FigCraft is a clean-room, open-source, pure-Rust reimplementation of the Figma design workflow,
 native on macOS, Windows, Linux and FreeBSD and in the browser, fully drivable by agents through
@@ -131,6 +131,8 @@ Ranked; detail and milestones in [`docs/roadmap.md`](docs/roadmap.md).
 5. Multiplayer (M9): accounts and teams on top of the live sessions and the standalone server (transport, hosting, invite links that open the app, document sync, presence with remote text carets, cursor chat and spotlight, per-user undo, reconnect with offline edits, collision-free ids for styles, variables and comments, the browser client, `figcraft-server` with persistence and share links to edit or view, team libraries on the server landed): 42–84 h.
 
 ## Progress log
+
+- **2026-10-25** · Toggle-overlay model extracted from #1143 (M5): one action opens or closes its destination, including duplicate overlays and closing animations; commands, editor controls, translations and .fig fallback remain together. Numbers unchanged.
 
 - **2026-10-25** · Layout model extracted from #1143 (M2): reversed flow, stretch, wrapped-line distribution, percentage tracks, margins, align-self and signed padding, with commands, UI, .fig round trips and regressions. No Penpot importer or network access is included. Numbers unchanged.
 
@@ -336,6 +338,7 @@ Ranked; detail and milestones in [`docs/roadmap.md`](docs/roadmap.md).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-25 | minor | M5: extracted the toggle-overlay model, player/editor support and regression tests from #1143. Numbers unchanged. |
 | 2026-10-25 | minor | M2: extracted the reusable CSS-compatible layout model and its tests from #1143; file-format and readiness percentages unchanged. |
 | 2026-10-24 | minor | Dev Mode tail (M6, gap 16): Measurements kept on the canvas (gap 16): `devMode.addMeasurement {from?, to?, side?}` places one between two layers, along one side of a layer or (neither) to the layer around it, stored on the layer it starts from (saved in `.figcraft`, synced, undoable; old files open without them); Dev Mode draws them as labelled redlines that follow the layers, the Inspect tab lists them (those of the selected layer, or every one on the page), places and removes them; `devMode.removeMeasurement` and `devMode.measurements` remove and list them; a copy keeps those to layers copied with it. The layers panel is read-only in Dev Mode: rows select and expand, but don't rename, reorder, hide or lock. Dev Mode 97% → 98% breadth, 76% → 78% ready, 2–4 h → 1–2 h; headline numbers unchanged at this rounding |
 | 2026-10-24 | minor | Boards (M12): a file kind of its own (`file.newBoard`, saved in `.figcraft`, carried to live-session joiners) with sticky notes, shapes with text, connectors that re-route when what they join moves (an engine recompute, the same for local edits, undo and others' edits), marker, highlighter and eraser, stamps with the placer's name, a board toolbar and a contextual bar; prototyping and Dev Mode refuse on boards; design files and boards have their own marks on tabs and file rows. Boards row added outside the weighted numbers; headline numbers unchanged at this rounding |
