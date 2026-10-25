@@ -1620,6 +1620,7 @@ version = "0.11.2"
 dependencies = [
  "figcraft-doc",
  "figcraft-geom",
+ "serde_json",
 ]
 
 [[package]]

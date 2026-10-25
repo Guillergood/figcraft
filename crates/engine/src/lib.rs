@@ -1606,6 +1606,8 @@ mod al_content_align_tests;
 #[cfg(test)]
 mod al_drag_tests;
 #[cfg(test)]
+mod al_flexbox_tests;
+#[cfg(test)]
 mod al_keys_tests;
 #[cfg(test)]
 mod al_nesting_tests;
