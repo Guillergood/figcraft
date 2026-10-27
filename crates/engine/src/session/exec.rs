@@ -44,6 +44,8 @@ impl Session {
         let before = self.ds().ok().map(|d| (d.doc.clone(), d.selection.clone(), d.page, d.uid));
         // Cut and copy write the clipboard before a later check can refuse the command.
         let clipboard_before = self.clipboard.clone();
+        // The command and its normalisation must measure text using only its own fonts.
+        let _fonts = before.as_ref().map(|(doc, _, _, _)| figcraft_text::enter_document_fonts(doc));
         let result = guard::run(id, || (spec.run)(self, params))
             .and_then(|v| self.check_instance_structure(id, &before).map(|()| v))
             .and_then(|v| self.check_preview(id, &before).map(|()| v))

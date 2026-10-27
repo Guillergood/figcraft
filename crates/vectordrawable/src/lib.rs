@@ -81,6 +81,7 @@ pub enum VdError {
 /// The layers `ids` (bottom to top) as an Android Vector Drawable. Colours are written as they
 /// are: convert a Display P3 document to sRGB first (`Document::in_srgb`).
 pub fn try_export(doc: &Document, ids: &[NodeId], opts: &VdOptions) -> Result<VdExport, VdError> {
+    let _fonts = figcraft_text::enter_document_fonts(doc);
     check_export_depth(doc, ids)?;
     let area = match opts.bounds {
         Some(b) if [b.x0, b.y0, b.x1, b.y1].iter().all(|v| v.is_finite()) => b,

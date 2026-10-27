@@ -13,6 +13,7 @@ pub fn changed_nodes(doc: &Document, before: &Document) -> Vec<NodeId> {
 /// Keep derived state consistent after edits: text boxes resize to their content, groups wrap
 /// their children, instances follow their main components, auto layout re-flows.
 pub fn normalize(doc: &mut Document, before: &Document) {
+    let _fonts = figcraft_text::enter_document_fonts(doc);
     // Only what was touched since the last normalisation (edited, added or removed).
     let mut touched: BTreeSet<NodeId> = doc.take_dirty();
     // A variable or style edit changes no layer directly, but bound and linked layers must follow it.

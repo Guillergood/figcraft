@@ -1028,6 +1028,7 @@ pub fn export_svg(doc: &Document, ids: &[NodeId], opts: &SvgOptions) -> Option<S
 /// Like [`export_svg`], with an actionable error when the visible subtree is too deep. No partial
 /// SVG is returned; the depth limit is relative to each exported root, not the document's page.
 pub fn try_export_svg(doc: &Document, ids: &[NodeId], opts: &SvgOptions) -> Result<String, SvgError> {
+    let _fonts = figcraft_text::enter_document_fonts(doc);
     check_export_depth(doc, ids)?;
     let bounds: Rect = match opts.bounds {
         Some(b) if [b.x0, b.y0, b.x1, b.y1].iter().all(|v| v.is_finite()) => b,

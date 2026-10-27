@@ -155,11 +155,17 @@ pub(super) fn import(s: &mut Session, p: &Value) -> Result<Value> {
                 None => &figcraft_format::rest::no_images,
             };
             let sibling = if variables.is_none() { path.as_deref().and_then(sibling_variables) } else { None };
-            let (other, rest) = load_with(&bytes, &name, variables.as_ref().or(sibling.as_ref()), images)?;
+            let (mut other, rest) = load_with(&bytes, &name, variables.as_ref().or(sibling.as_ref()), images)?;
             let summary = import_summary(&other.doc);
-            let pages = append_pages(s.doc_mut()?, &other.doc)?;
+            let pages = append_pages(s.doc_mut()?, &other.doc, &mut other.issues)?;
+            if !other.issues.is_empty() {
+                s.message = Some(match other.issues.as_slice() {
+                    [one] => format!("{}: {one}", file_stem(&name)),
+                    more => format!("{}: {} import warnings; first: {}", file_stem(&name), more.len(), more[0]),
+                });
+            }
             let mut out = json!({"pages": pages, "summary": summary});
-            if rest {
+            if rest || !other.issues.is_empty() {
                 out["warnings"] = json!(other.issues);
             }
             Ok(out)
@@ -178,7 +184,11 @@ pub(super) fn import(s: &mut Session, p: &Value) -> Result<Value> {
 /// `doc`. Ids are remapped across all pages at once, so instances keep their main, instance layers
 /// their source and interactions and flows their targets wherever those are. Styles, variables and
 /// collections whose id the document already has are kept as they are.
-pub(super) fn append_pages(doc: &mut Document, other: &Document) -> Result<Vec<NodeId>> {
+pub(super) fn append_pages(doc: &mut Document, other: &Document, warnings: &mut Vec<String>) -> Result<Vec<NodeId>> {
+    let (_, skipped) = figcraft_format::merge_embedded_fonts(doc, other);
+    if skipped > 0 {
+        warnings.push(format!("{skipped} embedded fonts were skipped (invalid or over the size/count limit)"));
+    }
     for (k, v) in &other.images {
         doc.images.entry(k.clone()).or_insert_with(|| v.clone());
     }

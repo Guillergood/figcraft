@@ -76,7 +76,7 @@ fn appending_pages_with_cached_library_components_brings_the_components() {
     for i in 0..8 {
         doc.create(page, NodeKind::Rectangle, &format!("Filler {i}"), 0.0, 0.0, 5.0, 5.0).unwrap();
     }
-    append_pages(&mut doc, &other).unwrap();
+    append_pages(&mut doc, &other, &mut Vec::new()).unwrap();
     assert!(doc.validate().is_empty(), "{:?}", doc.validate());
     assert!(crate::components::mirror_issues(&doc).is_empty(), "{:?}", crate::components::mirror_issues(&doc));
     let inst = doc.nodes().find(|n| n.name == "Cached instance").unwrap();

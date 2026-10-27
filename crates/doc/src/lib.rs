@@ -182,6 +182,14 @@ pub struct Document {
     /// Images by content hash; serialized separately by the format crate.
     #[serde(skip)]
     pub images: BTreeMap<String, ImageData>,
+    /// Font files belonging to this design (SHA-256 -> original OpenType/TrueType bytes).
+    /// Serialized as separate `fonts/<sha256>` entries in `.figcraft`, never in JSON.
+    #[serde(skip)]
+    pub embedded_fonts: BTreeMap<String, Arc<Vec<u8>>>,
+    /// Redistribution notices for document-owned fonts, indexed by font SHA-256.
+    /// Stored in document JSON so portable fonts retain their license on save/reopen.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub embedded_font_licenses: BTreeMap<String, String>,
     /// The page shown when the file opens.
     #[serde(default)]
     pub current_page: Option<NodeId>,
@@ -249,6 +257,8 @@ impl Document {
             styles: Vec::new(),
             variables: Variables::default(),
             images: BTreeMap::new(),
+            embedded_fonts: BTreeMap::new(),
+            embedded_font_licenses: BTreeMap::new(),
             current_page: None,
             document_colors: Vec::new(),
             comments: Vec::new(),

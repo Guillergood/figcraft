@@ -108,6 +108,7 @@ pub(super) fn load_with(
             if loaded.doc.name.is_empty() || loaded.doc.name == "Untitled" {
                 loaded.doc.name = file_stem(name_hint);
             }
+            validate_document_fonts(&loaded.doc, &mut loaded.issues);
             Ok((loaded, false))
         }
     }
@@ -333,6 +334,18 @@ pub(crate) fn load_fig(bytes: &[u8], name: &str) -> Option<Result<figcraft_forma
         link_instances(&mut doc);
         figcraft_format::Loaded { issues: warnings, ..doc.into() }
     }))
+}
+
+/// Font data from documents is registered at runtime only; never written into system
+/// font folders. SHA-256 ids avoid re-registering the same file on each reopen. A
+/// document keeps the bytes so the font survives save/reopen on a different computer.
+fn validate_document_fonts(doc: &Document, warnings: &mut Vec<String>) {
+    // Never add portable fonts to the process-global font database: a separate open
+    // document can contain different bytes with exactly the same family/style.
+    let families = figcraft_text::document_font_families(doc);
+    if families.is_empty() && !doc.embedded_fonts.is_empty() {
+        warnings.push("Embedded font data is not readable; original family names were preserved".into());
+    }
 }
 
 /// Link imported instances to their mains (layer sources, overrides found by comparing values),

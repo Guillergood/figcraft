@@ -219,6 +219,8 @@ impl FigApp {
         if self.ui.icon_gallery {
             icons::gallery(&ctx);
         }
+        // Font previews and measurement controls see the same portable faces as the canvas.
+        let _fonts = self.session.doc().ok().map(figcraft_text::enter_document_fonts);
         theme::set_doc_profile(&ctx, self.session.doc().map_or(figcraft_color::ColorProfile::Srgb, |d| d.color_profile));
         widgets::set_nudge(&ctx, self.session.prefs.nudge_small, self.session.prefs.nudge_big);
         self.sync_dev_mode();
