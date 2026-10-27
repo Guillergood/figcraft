@@ -506,14 +506,18 @@ pub fn layout(text: &TextData, box_width: Option<f64>, box_height: Option<f64>) 
             && i > line_start
             && !it.is_space()
         {
-            let brk = last_break.filter(|b| *b >= line_start).map(|b| b + 1).unwrap_or(i);
-            lines.push((line_start, brk, false, para));
-            line_start = brk;
-            i = brk;
-            x = 0.0;
-            last_break = None;
-            para_first_line = false;
-            continue;
+            // An indivisible word wider than its fixed box must overhang, not
+            // acquire a fabricated character break. Natural break opportunities
+            // (CJK, whitespace, punctuation) still wrap as before.
+            if let Some(brk) = last_break.filter(|b| *b >= line_start).map(|b| b + 1) {
+                lines.push((line_start, brk, false, para));
+                line_start = brk;
+                i = brk;
+                x = 0.0;
+                last_break = None;
+                para_first_line = false;
+                continue;
+            }
         }
         x += w;
         if items.get(i + 1).is_some_and(|next| crate::breaks::break_between(it.ch, next.ch)) {
