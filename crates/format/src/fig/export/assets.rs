@@ -55,7 +55,16 @@ impl<'d> Exporter<'d> {
                 _ => {}
             }
             for a in n.interactions.iter().flat_map(|it| figcraft_doc::proto::walk(&it.actions)) {
-                if let Action::OpenOverlay { dest, position, close_on_outside, background, anchor, .. } = a {
+                let settings = match a {
+                    Action::OpenOverlay { dest, position, close_on_outside, background, anchor, .. } => {
+                        Some((dest, position, close_on_outside, background, *anchor))
+                    }
+                    Action::ToggleOverlay { dest, position, close_on_outside, background, .. } => {
+                        Some((dest, position, close_on_outside, background, figcraft_doc::proto::OverlayAnchor::Screen))
+                    }
+                    _ => None,
+                };
+                if let Some((dest, position, close_on_outside, background, anchor)) = settings {
                     let position = if !anchor.is_screen() && *position != OverlayPosition::Manual { OverlayPosition::Manual } else { *position };
                     let o = Overlay { position, close_on_outside: *close_on_outside, background: *background };
                     match self.overlays.get(dest) {

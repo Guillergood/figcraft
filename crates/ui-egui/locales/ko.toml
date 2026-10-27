@@ -10,6 +10,7 @@ name = "한국어"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "오버레이 전환"
 "% of all commits" = "전체 커밋 중 %"
 "(no longer published)" = "(게시 중단됨)"
 "({n} warnings: some entries were skipped)" = { other = "(경고 {n}개: 일부 항목을 건너뜀)" }

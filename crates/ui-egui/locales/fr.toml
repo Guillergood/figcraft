@@ -9,6 +9,7 @@ name = "Français"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Ouvrir/fermer la superposition"
 "% of all commits" = "% de tous les commits"
 "(no longer published)" = "(plus publié)"
 "({n} warnings: some entries were skipped)" = { one = "({n} avertissement : certaines entrées ont été ignorées)", other = "({n} avertissements : certaines entrées ont été ignorées)" }

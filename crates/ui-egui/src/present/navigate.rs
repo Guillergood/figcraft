@@ -5,14 +5,21 @@ impl Presenter {
     /// Close the top overlay; it animates out with its opening transition reversed.
     pub(super) fn close_overlay(&mut self, now: f64) -> bool {
         let Some(o) = self.overlays.pop() else { return false };
-        if !matches!(o.transition, Transition::Instant) && o.dur > 0.0 {
-            // An overlay closed mid-opening reverses from where it got to.
-            let shown = ((now - o.opened) / o.dur).clamp(0.0, 1.0);
-            self.closing.push((now - (1.0 - shown) * o.dur, o));
-        }
+        self.closing_push(o, now);
         self.hovered.clear();
         true
     }
+
+    /// Close every active overlay showing `id`; animate out only its topmost (visible) copy.
+    pub(super) fn close_overlay_id(&mut self, id: NodeId, now: f64) -> bool {
+        let Some(at) = self.overlays.iter().rposition(|o| o.id == id) else { return false };
+        let o = self.overlays.remove(at);
+        self.overlays.retain(|other| other.id != id);
+        self.closing_push(o, now);
+        self.hovered.clear();
+        true
+    }
+
 
     /// Follow the editor's document: copy it the first time and whenever it changed, keeping the
     /// screen, the overlays and the scroll offsets that still exist (a deleted screen goes back to

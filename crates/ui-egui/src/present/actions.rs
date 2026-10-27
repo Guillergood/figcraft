@@ -131,6 +131,32 @@ impl Presenter {
                 self.hovered.clear();
                 true
             }
+            Action::ToggleOverlay { dest, position, close_on_outside, background, offset } => {
+                let at = self.page_rect(rect);
+                if !doc.contains(*dest) {
+                    return false;
+                }
+                // The toggle: close the overlay when it is already open, else open it.
+                if self.overlays.iter().any(|o| o.id == *dest) {
+                    return self.close_overlay_id(*dest, now);
+                }
+                self.delays_fired.retain(|(id, _)| !doc.is_ancestor(*dest, *id));
+                self.overlays.push(OverlayState {
+                    id: *dest,
+                    position: *position,
+                    close_on_outside: *close_on_outside,
+                    background: *background,
+                    anchor: at,
+                    anchor_to: OverlayAnchor::Screen,
+                    offset: *offset,
+                    opened: now,
+                    transition: tr,
+                    dur,
+                    easing,
+                });
+                self.hovered.clear();
+                true
+            }
             Action::SwapOverlay { dest } => {
                 let at = self.page_rect(rect);
                 if !doc.contains(*dest) {

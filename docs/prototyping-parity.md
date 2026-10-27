@@ -1,6 +1,6 @@
 # Prototyping parity
 
-> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-24 · **Change:** patch (overlay positions relative to the layer that opens them; the Triggers row no longer lists delays on mouse triggers as missing; top-level frames bigger than the device's screen scroll in the player; Change to, set variable and set variable mode lay out what they change in the player, as the canvas does; presentation tabs, one per page of a file; a Present tab with device and scale controls (#537); core editor leftovers: delays on mouse triggers and manual overlay offsets; controller buttons on key/gamepad triggers, widgets that react in prototypes, `proto.evaluate` and the mode lookup rules pinned) · **Target:** Figma Design (desktop app 126.10.7)
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-27 · **Change:** minor (M5: toggle overlays extracted from #1334; duplicate-safe animated closing, independent of layout and portable fonts; overlay positions relative to the layer that opens them; the Triggers row no longer lists delays on mouse triggers as missing; top-level frames bigger than the device's screen scroll in the player; Change to, set variable and set variable mode lay out what they change in the player, as the canvas does; presentation tabs, one per page of a file; a Present tab with device and scale controls (#537); core editor leftovers: delays on mouse triggers and manual overlay offsets; controller buttons on key/gamepad triggers, widgets that react in prototypes, `proto.evaluate` and the mode lookup rules pinned) · **Target:** Figma Design (desktop app 126.10.7)
 
 **Breadth ~92%, ready ~74% (estimated).** Every Figma trigger except media, every action except
 media control, every transition and easing exist; key/gamepad triggers take controller buttons,
@@ -16,7 +16,7 @@ larger real prototypes. Remaining: 2–5 h.
 | Group | Figma | FigCraft | Missing |
 |---|---|---|---|
 | Triggers | On click, on drag, while hovering, while pressing, key/gamepad, mouse enter, mouse leave, mouse down, mouse up, after delay, on media hit, on media end | 10: OnClick, OnHover, OnPress, OnDrag, MouseEnter, MouseLeave, MouseDown, MouseUp, AfterDelay, KeyPress (keys, combinations and controller buttons) | media triggers; controllers on macOS, Linux and FreeBSD |
-| Actions | Navigate to, change to, back, scroll to, open link, open / swap / close overlay, set variable, set variable mode, conditional, play/pause/mute/seek media | 11: Navigate, Back, ScrollTo (with an offset), OpenOverlay, SwapOverlay, CloseOverlay, OpenUrl, ChangeTo, SetVariable, SetVariableMode, Conditional | media actions |
+| Actions | Navigate to, change to, back, scroll to, open link, open / swap / close overlay, set variable, set variable mode, conditional, play/pause/mute/seek media | 12: Navigate, Back, ScrollTo (with an offset), OpenOverlay, SwapOverlay, ToggleOverlay, CloseOverlay, OpenUrl, ChangeTo, SetVariable, SetVariableMode, Conditional | media actions |
 | Transitions | Instant, dissolve, smart animate, move in/out, push, slide in/out | all 8 | — |
 | Easing | Linear, ease in/out/in-and-out, back variants, gentle, quick, bouncy, slow, custom bezier, custom spring | all 13 (springs physical) | — |
 
@@ -84,6 +84,7 @@ tool; opt-in), **silent** (the documentation doesn't say; the case pins the curr
 | Expressions (`count + 1`, `mode(Theme) == "Dark"`, `accent[Dark]`) | done | checked when entered; `proto.evaluate` computes one where a layer's interaction would run (MCP and agents) |
 | Flows, starting points, descriptions | done | |
 | Overlays: position, close on click outside, background, animate out, stacking, timers from when they open | done | |
+| Toggle overlay: the same action opens and closes the overlay | done | |
 | Scroll behaviour: overflow directions, fixed (drawn on top), sticky, preserve scroll position, scroll to with an offset, momentum and overscroll | done | |
 | Key combinations (`Shift+K`), recorded in the editor and imported from REST files | done | |
 | Controller buttons on key/gamepad triggers (Controller menu, REST import, `ui.input {gamepad}` on the control channel) | done | read from controllers on Windows (Windows.Gaming.Input) and in the browser (Gamepad API); macOS, Linux and FreeBSD don't read controllers yet; button names follow one layout (no PlayStation or Switch labels) |
@@ -105,6 +106,7 @@ tool; opt-in), **silent** (the documentation doesn't say; the case pins the curr
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-27 | minor | M5: toggle overlays extracted from #1334; duplicate-safe animated closing, independent of layout and portable fonts. Numbers unchanged. |
 | 2026-10-24 | patch | The Triggers row's Missing column no longer lists delays on mouse enter, leave, down and up, which landed on 2026-10-13 (`crates/engine/src/proto_delay_tests.rs`, `crates/ui-egui/src/present/delay_tests.rs`). Numbers unchanged |
 | 2026-10-24 | patch | Open link to a website first shows a notice that it leaves the prototype, with the link, Open link, Cancel and "Don't show this again", which the desktop app saves with its preferences and the web build keeps until the page reloads (`proto.linkNotice` turns the notice back on); a second link to a website that fires while the notice shows is dropped, and a mail link still opens. Before, the player opened the link at once, also from an After delay trigger. Numbers unchanged |
 | 2026-10-23 | patch | A top-level frame taller (or wider) than the device's screen scrolls with no overflow setting, as Figma's documentation says; before, "No scrolling" frames such as the landing page template's Phone frame only clipped. Content past a frame's own edges still scrolls only as its overflow allows. Checked in the app on macOS. Numbers unchanged |

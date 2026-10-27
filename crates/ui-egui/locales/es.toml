@@ -8,6 +8,7 @@ name = "Español"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Alternar superposición"
 "Add a minute" = "Añadir un minuto"
 "Add column" = "Añadir columna"
 "Add measurement" = "Añadir medición"

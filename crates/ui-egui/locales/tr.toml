@@ -10,6 +10,7 @@
 name = "Türkçe"
 
 [ui]
+"Toggle overlay" = "Bindirmeyi aç/kapat"
 "% of all commits" = "Tüm commit'lerin %'si"
 "(no longer published)" = "(artık yayımlanmıyor)"
 "({n} warnings: some entries were skipped)" = { other = "({n} uyarı: bazı girdiler atlandı)" }

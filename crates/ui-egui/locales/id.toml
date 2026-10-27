@@ -8,6 +8,7 @@ name = "Bahasa Indonesia"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "Alihkan overlay"
 "Relative to" = "Relatif terhadap"
 "Trigger layer" = "Layer pemicu"
 "Whole screen" = "Seluruh layar"

@@ -11,6 +11,7 @@ name = "日本語"
 status = "draft — needs native review"
 
 [ui]
+"Toggle overlay" = "オーバーレイを切り替え"
 "% of all commits" = "全コミット中の %"
 "(no longer published)" = "（公開終了）"
 "({n} warnings: some entries were skipped)" = { other = "（警告 {n} 件：一部の項目をスキップ）" }

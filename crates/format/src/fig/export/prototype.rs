@@ -106,6 +106,15 @@ impl<'d> Exporter<'d> {
                 }
                 Some(act)
             }
+            Action::ToggleOverlay { dest, position, offset, .. } => {
+                // `.fig` has no toggle: the overlay opens, and closing it is a separate action.
+                self.warn("toggle-overlay prototype actions were written as plain overlays");
+                let mut act = node(self, dest, "OVERLAY")?;
+                if let (Kv::Object(f), OverlayPosition::Manual, Some([x, y])) = (&mut act, position, offset) {
+                    f.push(("overlayRelativePosition", o(vec![("x", fl(*x)), ("y", fl(*y))])));
+                }
+                Some(act)
+            }
             Action::SwapOverlay { dest } => node(self, dest, "SWAP"),
             Action::ChangeTo { dest } => node(self, dest, "SWAP_STATE"),
             Action::ScrollTo { dest, offset } => {

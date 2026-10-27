@@ -396,6 +396,15 @@ impl Presenter {
         self.drag_scroll = None;
     }
 
+    /// An overlay leaving: it animates out with its opening transition reversed. One closed
+    /// mid-opening reverses from where it got to.
+    fn closing_push(&mut self, o: OverlayState, now: f64) {
+        if !matches!(o.transition, Transition::Instant) && o.dur > 0.0 {
+            let shown = ((now - o.opened) / o.dur).clamp(0.0, 1.0);
+            self.closing.push((now - (1.0 - shown) * o.dur, o));
+        }
+    }
+
     /// Size the prototype another way; the view starts over at its top.
     pub fn set_scale(&mut self, scale: PresentScale) {
         self.view.scale = scale;
