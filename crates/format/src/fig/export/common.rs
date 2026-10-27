@@ -1,8 +1,5 @@
 use super::*;
 
-/// Longest kept description of such a layer (bytes of JSON).
-const MAX_STASH: usize = 1 << 20;
-
 /// Whether a width profile reaches further on one side of the path than on the other.
 pub(super) fn one_sided(p: &figcraft_doc::WidthProfile) -> bool {
     p.points.iter().any(|q| q.bias.abs() > 1e-6)

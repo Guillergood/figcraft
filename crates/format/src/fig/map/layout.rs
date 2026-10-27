@@ -65,6 +65,28 @@ impl<'a> Mapper<'a> {
                 }
             }
         }
+        // The settings the format has no name for come back as plugin data (our extension of the
+        // file JSON): the export kept them there.
+        if let Some(kept) = stashed(v, crate::fig::export::LAYOUT_STASH) {
+            for (k, val) in kept {
+                // Do not let stale or arbitrary plugin data replace native layout fields.
+                let applicable = match k.as_str() {
+                    "layoutReverse" => val.is_boolean(),
+                    "counterAxisAlignItems" => o.get(&k).and_then(Value::as_str) == Some("MIN") && val.as_str() == Some("STRETCH"),
+                    "counterAxisAlignContent" => {
+                        o.get(&k).and_then(Value::as_str) != Some("SPACE_BETWEEN") && matches!(val.as_str(), Some("SPACE_AROUND" | "SPACE_EVENLY"))
+                    }
+                    "columnTracks" => {
+                        val.as_array().is_some_and(|tracks| o.get("gridColumnCount").and_then(Value::as_u64) == Some(tracks.len() as u64))
+                    }
+                    "rowTracks" => val.as_array().is_some_and(|tracks| o.get("gridRowCount").and_then(Value::as_u64) == Some(tracks.len() as u64)),
+                    _ => false,
+                };
+                if applicable {
+                    o.insert(k, val);
+                }
+            }
+        }
     }
 
     /// Track sizing maps are keyed by GUID; their order comes from the separate track list.

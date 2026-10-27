@@ -49,7 +49,7 @@ impl<'d> Exporter<'d> {
             // (which the import puts back).
             self.warn("strokes wider on one side of their path were written as filled outlines (the stroke itself is kept for FigCraft)");
             let children = self.layer(&outline, parent, f, nested);
-            f.push(("pluginData", arr(vec![o(vec![("pluginID", s(STASH.0)), ("value", s(&original)), ("key", s(STASH.1))])])));
+            push_plugin_data(f, STASH.0, STASH.1, &original);
             return children;
         }
         let main = match &n.kind {
@@ -337,6 +337,8 @@ impl<'d> Exporter<'d> {
             CrossAlign::Center => "CENTER",
             CrossAlign::Max => "MAX",
             CrossAlign::Baseline => "BASELINE",
+            // Figma has no stretched cross axis; the children keep their own size.
+            CrossAlign::Stretch => "MIN",
         };
         // The main axis is the width for horizontal and grid layouts.
         let (main_hug, cross_hug) = {
@@ -368,6 +370,64 @@ impl<'d> Exporter<'d> {
                 ("stackCounterAlignContent", e(if spread { "SPACE_BETWEEN" } else { "AUTO" })),
             ]);
         }
+        // The settings the format has no name for are kept as plugin data (our extension of the
+        // file), so they survive a round trip through our own importer.
+        self.stash_layout(n, l, f);
+    }
+
+    /// Keep the auto layout settings the format has no name for (a reversed flow, a stretched
+    /// cross axis, the wrapped lines' space-around/space-evenly, percentage grid tracks) as
+    /// plugin data: the format's own fields can't carry them, and the import puts them back.
+    /// The names are the ones the file JSON uses, so the importer reads them as it reads the
+    /// rest.
+    fn stash_layout(&mut self, n: &Node, l: &AutoLayout, f: &mut Fields) {
+        let mut kept = serde_json::Map::new();
+        if l.reverse {
+            kept.insert("layoutReverse".into(), serde_json::json!(true));
+        }
+        if l.cross_align == CrossAlign::Stretch {
+            kept.insert("counterAxisAlignItems".into(), serde_json::json!("STRETCH"));
+        }
+        match l.content_align {
+            ContentAlign::SpaceAround => {
+                kept.insert("counterAxisAlignContent".into(), serde_json::json!("SPACE_AROUND"));
+            }
+            ContentAlign::SpaceEvenly => {
+                kept.insert("counterAxisAlignContent".into(), serde_json::json!("SPACE_EVENLY"));
+            }
+            _ => {}
+        }
+        let tracks = |specs: &[figcraft_doc::GridTrack]| {
+            specs
+                .iter()
+                .map(|t| {
+                    if t.percent {
+                        serde_json::json!({"percent": (t.value * 100.0).clamp(0.0, 100.0)})
+                    } else {
+                        match t.sizing {
+                            Sizing::Fixed => serde_json::json!({"fixed": t.value}),
+                            Sizing::Hug => serde_json::json!({"hug": true}),
+                            Sizing::Fill => serde_json::json!({"fill": t.value}),
+                        }
+                    }
+                })
+                .collect::<Vec<_>>()
+        };
+        if l.column_tracks.iter().any(|t| t.percent) {
+            kept.insert("columnTracks".into(), serde_json::json!(tracks(&l.column_tracks)));
+        }
+        if l.row_tracks.iter().any(|t| t.percent) {
+            kept.insert("rowTracks".into(), serde_json::json!(tracks(&l.row_tracks)));
+        }
+        // An instance with defaults must clear any extension inherited from its main.
+        if kept.is_empty() && n.source.is_none() && !matches!(n.kind, NodeKind::Instance { .. }) {
+            return;
+        }
+        let original = Value::Object(kept).to_string();
+        if original.len() > MAX_STASH {
+            return;
+        }
+        push_plugin_data(f, LAYOUT_STASH.0, LAYOUT_STASH.1, &original);
     }
 
     /// A grid layout's track gaps, order and sizes.
@@ -385,8 +445,17 @@ impl<'d> Exporter<'d> {
         };
         f.extend([("gridColumnGap", fl(l.gap)), ("gridRowGap", fl(l.cross_gap)), ("gridColumns", map(&cols)), ("gridRows", map(&rows))]);
         let mut dropped = false;
-        let column_sizing = grid_sizing(&l.column_tracks, &cols, &mut dropped);
-        let row_sizing = grid_sizing(&l.row_tracks, &rows, &mut dropped);
+        let stroke = if l.strokes_included && n.has_visible_stroke() && n.stroke.align == StrokeAlign::Inside {
+            n.stroke.sides.unwrap_or([n.stroke.weight; 4])
+        } else {
+            [0.0; 4]
+        };
+        let [pt, pr, pb, pl] = std::array::from_fn::<_, 4, _>(|i| l.padding[i] + stroke[i].max(0.0));
+        let width = (n.child_layout.sizing_h != Sizing::Hug).then_some(n.width - pl - pr - l.gap.max(0.0) * cols.len().saturating_sub(1) as f64);
+        let height =
+            (n.child_layout.sizing_v != Sizing::Hug).then_some(n.height - pt - pb - l.cross_gap.max(0.0) * rows.len().saturating_sub(1) as f64);
+        let column_sizing = grid_sizing(&l.column_tracks, &cols, width, &mut dropped);
+        let row_sizing = grid_sizing(&l.row_tracks, &rows, height, &mut dropped);
         if dropped {
             self.warn("grid tracks whose size the format can't hold were written as equal tracks");
         }

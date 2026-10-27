@@ -103,6 +103,7 @@ icons! {
     LayoutV,
     LayoutWrap,
     LayoutGrid,
+    LayoutReverse,
     AutoLayout,
     ClipContent,
     Effects,

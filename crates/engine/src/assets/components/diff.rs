@@ -83,7 +83,7 @@ pub fn diff_groups(a: &Node, b: &Node) -> Vec<&'static str> {
         if x.gap != y.gap || x.cross_gap != y.cross_gap {
             out.push("gap");
         }
-        if x.main_align != y.main_align || x.cross_align != y.cross_align || x.content_align != y.content_align {
+        if x.main_align != y.main_align || x.cross_align != y.cross_align || x.content_align != y.content_align || x.reverse != y.reverse {
             out.push("alignment");
         }
     }

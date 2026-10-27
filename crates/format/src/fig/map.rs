@@ -22,6 +22,8 @@ mod connector;
 mod document;
 mod layer;
 mod layout;
+#[cfg(test)]
+mod layout_stash_tests;
 mod paint;
 mod proto;
 mod text;
@@ -30,6 +32,16 @@ mod variables;
 use component::OverrideScope;
 #[cfg(test)]
 use paint::paint;
+
+/// What a layer kept as plugin data under `(plugin, key)`, as the file JSON fields it holds.
+fn stashed(v: &View, (plugin, key): (&str, &str)) -> Option<Vec<(String, Value)>> {
+    let kept =
+        v.list("pluginData").iter().find(|p| p.get("pluginID").and_then(Kv::str) == Some(plugin) && p.get("key").and_then(Kv::str) == Some(key))?;
+    let value = kept.get("value").and_then(Kv::str)?;
+    let parsed: Value = serde_json::from_str(value).ok()?;
+    let Value::Object(map) = parsed else { return None };
+    Some(map.into_iter().collect())
+}
 
 type Obj = Map<String, Value>;
 

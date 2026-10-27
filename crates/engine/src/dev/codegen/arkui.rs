@@ -176,7 +176,8 @@ fn arkui_layer(ctx: &Ctx, n: &Node, depth: usize, out: &mut String, extra: &[Str
                     CrossAlign::Min => None,
                     CrossAlign::Center => Some("Center"),
                     CrossAlign::Max => Some(if l.mode == LayoutMode::Vertical { "End" } else { "Bottom" }),
-                    CrossAlign::Baseline => None,
+                    // Children already carry their resolved dimensions.
+                    CrossAlign::Baseline | CrossAlign::Stretch => None,
                 };
                 if let Some(c) = cross {
                     let ty = if l.mode == LayoutMode::Vertical { "HorizontalAlign" } else { "VerticalAlign" };

@@ -104,6 +104,7 @@ pub fn refused_override(before: &Document, after: &Document, id: NodeId) -> Opti
         x.layout.clone().map(|mut l| {
             (l.gap, l.cross_gap, l.padding, l.main_align, l.cross_align) = (0.0, 0.0, [0.0; 4], MainAlign::Min, CrossAlign::Min);
             l.content_align = ContentAlign::Auto;
+            l.reverse = false;
             l
         })
     };

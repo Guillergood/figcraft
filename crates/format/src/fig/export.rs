@@ -270,6 +270,21 @@ fn archive(
     Ok(buf.into_inner())
 }
 
+/// The plugin id and key under which a frame keeps the auto layout settings the format has no
+/// name for: a reversed flow, a stretched cross axis, the wrapped lines' space-around/space-evenly
+/// and the grid tracks' sizes.
+pub(super) const LAYOUT_STASH: (&str, &str) = ("figcraft", "layout");
+/// Longest kept description of such a layer (bytes of JSON).
+const MAX_STASH: usize = 1 << 20;
+
+/// Add a plugin data entry to a layer's fields, keeping the entries it already has.
+fn push_plugin_data(f: &mut Fields, plugin: &str, key: &str, value: &str) {
+    let mut list: Vec<Kv<'static>> = f.iter().find(|(k, _)| *k == "pluginData").map(|(_, v)| v.list().to_vec()).unwrap_or_default();
+    list.push(o(vec![("pluginID", s(plugin)), ("value", s(value)), ("key", s(key))]));
+    f.retain(|(k, _)| *k != "pluginData");
+    f.push(("pluginData", arr(list)));
+}
+
 type Fields = Vec<(&'static str, Kv<'static>)>;
 
 fn o(f: Fields) -> Kv<'static> {
@@ -300,8 +315,13 @@ fn b(x: bool) -> Kv<'static> {
 
 /// A track's size as the format's enum name and value, when both sizing functions agree (the
 /// importer keeps only those). `None`: the format has no name for it, so an equal track stands in.
-fn grid_track_size(track: &GridTrack) -> Option<(&'static str, f64)> {
-    let value = track.value;
+fn grid_track_size(track: &GridTrack, available: Option<f64>) -> Option<(&'static str, f64)> {
+    let value = if track.percent {
+        let Some(available) = available else { return Some(("HUG", 0.0)) };
+        available.max(0.0) * track.value.clamp(0.0, 1.0)
+    } else {
+        track.value
+    };
     let fits = value.is_finite() && (0.0..=crate::fig::map::MAX_GRID_TRACK_VALUE).contains(&value);
     match track.sizing {
         Sizing::Fixed if fits => Some(("FIXED", value)),
@@ -314,10 +334,10 @@ fn grid_track_size(track: &GridTrack) -> Option<(&'static str, f64)> {
 /// A grid axis's track sizes, keyed by track id like the order map. A track the document doesn't
 /// set is left out, and one the format can't hold keeps its id (the import equalises it) and sets
 /// `dropped`.
-fn grid_sizing(tracks: &[GridTrack], ids: &[u32], dropped: &mut bool) -> Option<Kv<'static>> {
+fn grid_sizing(tracks: &[GridTrack], ids: &[u32], available: Option<f64>, dropped: &mut bool) -> Option<Kv<'static>> {
     let mut entries = Vec::new();
     for (track, id) in tracks.iter().zip(ids) {
-        match grid_track_size(track) {
+        match grid_track_size(track, available) {
             Some((kind, value)) => {
                 let size = || o(vec![("type", e(kind)), ("value", fl(value))]);
                 entries.push(o(vec![("id", guid(AUX, *id)), ("trackSize", o(vec![("minSizing", size()), ("maxSizing", size())]))]));

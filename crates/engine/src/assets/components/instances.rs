@@ -164,7 +164,10 @@ pub(crate) fn copy_group(from: &Node, to: &mut Node, g: &str) {
                 match g {
                     "padding" => b.padding = a.padding,
                     "gap" => (b.gap, b.cross_gap) = (a.gap, a.cross_gap),
-                    _ => (b.main_align, b.cross_align, b.content_align) = (a.main_align, a.cross_align, a.content_align),
+                    _ => {
+                        (b.main_align, b.cross_align, b.content_align) = (a.main_align, a.cross_align, a.content_align);
+                        b.reverse = a.reverse;
+                    }
                 }
             }
         }

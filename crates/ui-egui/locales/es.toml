@@ -8,6 +8,10 @@ name = "Español"
 status = "draft — needs native review"
 
 [ui]
+"Align self" = "Alineación propia"
+"Item margins" = "Márgenes del elemento"
+"Reverse direction" = "Invertir la dirección"
+"Baseline" = "Línea base"
 "Add a minute" = "Añadir un minuto"
 "Add column" = "Añadir columna"
 "Add measurement" = "Añadir medición"
